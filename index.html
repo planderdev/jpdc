@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>삼다수 사옥 이전 제안서</title>
+<title>삼다수 사옥 이전</title>
 <style>
   :root {
     --bg: #0b1633;
@@ -28,10 +28,10 @@
   .stage {
     position: fixed; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    padding: 48px 72px 64px;
+    padding: 64px 72px 64px;
   }
   @media (max-width: 720px) {
-    .stage { padding: 12px 8px 56px; }
+    .stage { padding: 56px 8px 56px; }
   }
   .frame {
     position: relative;
@@ -97,8 +97,42 @@
   }
   .video-tabs button:hover { background: rgba(255,255,255,.15); color: #fff; }
   .video-tabs button.on { background: #2f6fe8; border-color: #2f6fe8; color: #fff; }
-  /* 영상 페이지에서는 QR/탭/플레이어 클릭이 좌우 이동 영역에 가려지지 않도록 클릭 영역을 끔 */
+  /* 영상 페이지에서는 탭/플레이어 클릭이 좌우 이동 영역에 가려지지 않도록 클릭 영역을 끔 */
   body.on-video .nav-zone { display: none; }
+
+  /* 상단: 구역 선택 */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; z-index: 10;
+    background: linear-gradient(to bottom, rgba(5,10,25,.6), transparent);
+  }
+  .sections { display: flex; gap: 6px; }
+  .sections button {
+    appearance: none; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.14);
+    background: var(--ui); color: var(--muted);
+    border-radius: 999px; padding: .45em 1.05em;
+    font: inherit; font-size: 13px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .sections button:hover { background: var(--ui-hover); color: var(--text); }
+  .sections button.on { background: #2f6fe8; border-color: #2f6fe8; color: #fff; }
+  .sections button small {
+    font-size: 11px; font-weight: 500; opacity: .75;
+  }
+  .hint {
+    font-size: 12px; color: var(--muted);
+    opacity: 1; transition: opacity 1s;
+  }
+  .hint.hide { opacity: 0; }
+  @media (max-width: 720px) {
+    .topbar { padding: 0 12px; }
+    .sections button { padding: .4em .8em; font-size: 12px; }
+    .sections button small { display: none; }
+    .hint { display: none; }
+  }
 
   /* 하단 컨트롤 */
   .controls {
@@ -122,33 +156,35 @@
   .btn:active { transform: scale(.94); }
   .btn:disabled { opacity: .3; cursor: default; }
   .btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .counter { font-variant-numeric: tabular-nums; min-width: 56px; text-align: center; color: var(--text); }
+  .counter { font-variant-numeric: tabular-nums; min-width: 56px; text-align: center; color: var(--text); white-space: nowrap; }
+  .counter .sec { color: var(--muted); margin-right: 6px; }
   .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
-  @media (max-width: 720px) { .title { display: none; } }
+  @media (max-width: 720px) { .title { display: none; } .counter .sec { display: none; } }
 
   /* 진행 바 + 도트 */
   .progress {
     position: fixed; top: 0; left: 0; height: 3px;
     background: linear-gradient(90deg, #4f8cff, #7fb0ff);
-    transition: width .35s ease; z-index: 10;
+    transition: width .35s ease; z-index: 11;
   }
   .dots {
     position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
-    display: flex; gap: 8px; z-index: 11;
+    display: flex; gap: 6px; align-items: center; z-index: 11;
   }
+  .dots .gap { width: 10px; }
   .dots button {
     appearance: none; border: 0; cursor: pointer; padding: 0;
-    width: 8px; height: 8px; border-radius: 50%;
+    width: 7px; height: 7px; border-radius: 50%;
     background: rgba(255,255,255,.25);
     transition: transform .2s, background .2s;
   }
-  .dots button.on { background: #7fb0ff; transform: scale(1.35); }
+  .dots button.on { background: #7fb0ff; transform: scale(1.4); }
   .dots button.video { border-radius: 2px; }
-  @media (max-width: 720px) { .dots { display: none; } }
+  @media (max-width: 900px) { .dots { display: none; } }
 
   /* 좌우 클릭 영역 */
   .nav-zone {
-    position: fixed; top: 0; bottom: 56px; width: 25%;
+    position: fixed; top: 52px; bottom: 56px; width: 25%;
     z-index: 5; cursor: pointer;
   }
   .nav-zone.left { left: 0; }
@@ -165,25 +201,19 @@
   .nav-zone:hover .arrow { opacity: 1; }
   .nav-zone .arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   @media (max-width: 720px) { .nav-zone .arrow { display: none; } }
-
-  .hint {
-    position: fixed; top: 16px; right: 20px; z-index: 10;
-    font-size: 12px; color: var(--muted);
-    opacity: 1; transition: opacity 1s;
-  }
-  .hint.hide { opacity: 0; }
-  @media (max-width: 720px) { .hint { display: none; } }
 </style>
 </head>
 <body>
 
 <div class="progress" id="progress"></div>
-<div class="hint" id="hint">← → 방향키 · Space · 클릭으로 넘기기 · F 전체화면</div>
+
+<div class="topbar">
+  <div class="sections" id="sections"></div>
+  <div class="hint" id="hint">← → 방향키 · Space · 클릭으로 넘기기 · 1/2/3 구역 이동 · F 전체화면</div>
+</div>
 
 <div class="stage">
-  <div class="frame" id="frame">
-    <!-- 슬라이드는 스크립트에서 생성 -->
-  </div>
+  <div class="frame" id="frame"></div>
 </div>
 
 <div class="nav-zone left" id="zonePrev" aria-label="이전 슬라이드">
@@ -197,11 +227,11 @@
 
 <div class="controls">
   <div class="left">
-    <span class="title">삼다수 사옥 이전 제안서</span>
+    <span class="title" id="title">삼다수 사옥 이전</span>
   </div>
   <div class="right">
     <button class="btn" id="btnPrev" title="이전 (←)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <span class="counter" id="counter">1 / 9</span>
+    <span class="counter" id="counter"></span>
     <button class="btn" id="btnNext" title="다음 (→)"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
     <button class="btn" id="btnFull" title="전체화면 (F)"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button>
   </div>
@@ -209,47 +239,29 @@
 
 <script>
   // ===== 설정 =====
-  const SLIDE_COUNT = 8;                 // slides/01.jpg ~ 08.jpg
+  // 구역(섹션) 정의. 이 순서대로 이어서 넘어가며, 상단 버튼 또는 숫자키 1/2/3 으로 구역 간 바로 이동.
+  // URL 에 ?only=review 처럼 주면 해당 구역만 단독으로 표시됩니다.
+  const ALL_SECTIONS = [
+    { id: 'review',   name: '검토자료', type: 'images', dir: 'review', count: 12, ratio: '842 / 596' },
+    { id: 'proposal', name: '제안서',   type: 'images', dir: 'slides', count: 8,  ratio: '16 / 9' },
+    { id: 'video',    name: '영상',     type: 'video' },
+  ];
   const VIDEOS = [
     { src: 'video/video1.mp4?v=2', caption: '영상 1' },
     { src: 'video/video2.mp4?v=2', caption: '영상 2' },
     { src: 'video/video3.mp4?v=1', caption: '영상 3' },
   ];
-  const TOTAL = SLIDE_COUNT + 1;         // + 마지막 영상 페이지
+
+  const params = new URLSearchParams(location.search);
+  const only = params.get('only');
+  const SECTIONS = only && ALL_SECTIONS.some(s => s.id === only)
+    ? ALL_SECTIONS.filter(s => s.id === only)
+    : ALL_SECTIONS;
 
   // ===== 슬라이드 생성 =====
   const frame = document.getElementById('frame');
-  const slides = [];
-  for (let i = 1; i <= SLIDE_COUNT; i++) {
-    const el = document.createElement('div');
-    el.className = 'slide';
-    const img = document.createElement('img');
-    img.alt = `슬라이드 ${i}`;
-    img.dataset.src = `slides/${String(i).padStart(2, '0')}.jpg`;
-    img.decoding = 'async';
-    el.appendChild(img);
-    frame.appendChild(el);
-    slides.push(el);
-  }
-
-  // 영상 슬라이드
-  const vs = document.createElement('div');
-  vs.className = 'slide video-slide';
-  vs.innerHTML = `
-    <div class="videos">
-      ${VIDEOS.map((v, i) => `
-        <video preload="auto" playsinline controls data-idx="${i}">
-          <source src="${v.src}" type="video/mp4">
-        </video>`).join('')}
-    </div>
-    <div class="video-tabs">
-      ${VIDEOS.map((v, i) => `<button type="button" data-idx="${i}">${v.caption}</button>`).join('')}
-    </div>
-  `;
-  frame.appendChild(vs);
-  slides.push(vs);
-  const videos = Array.from(vs.querySelectorAll('video'));
-  const vtabs = Array.from(vs.querySelectorAll('.video-tabs button'));
+  const slides = [];   // { el, section, index(구역 내 0-based), isVideo }
+  let videos = [], vtabs = [];
 
   function playVideo(i, autoplay = true) {
     videos.forEach((v, k) => {
@@ -268,29 +280,83 @@
       v.play().catch(() => {});
     });
   }
-  vtabs.forEach((b, i) => b.addEventListener('click', (e) => { e.stopPropagation(); playVideo(i); }));
 
-  // 영상 종료 시 다음 영상으로 자동 전환
-  videos.forEach((v, i) => {
-    v.addEventListener('ended', () => {
-      if (videos[i + 1]) playVideo(i + 1);
-    });
+  SECTIONS.forEach(sec => {
+    if (sec.type === 'images') {
+      for (let i = 1; i <= sec.count; i++) {
+        const el = document.createElement('div');
+        el.className = 'slide';
+        el.style.aspectRatio = sec.ratio;
+        const img = document.createElement('img');
+        img.alt = `${sec.name} ${i}`;
+        img.dataset.src = `${sec.dir}/${String(i).padStart(2, '0')}.jpg`;
+        img.decoding = 'async';
+        el.appendChild(img);
+        frame.appendChild(el);
+        slides.push({ el, section: sec, index: i - 1, isVideo: false });
+      }
+    } else if (sec.type === 'video') {
+      const vs = document.createElement('div');
+      vs.className = 'slide video-slide';
+      vs.innerHTML = `
+        <div class="videos">
+          ${VIDEOS.map((v, i) => `
+            <video preload="auto" playsinline controls data-idx="${i}">
+              <source src="${v.src}" type="video/mp4">
+            </video>`).join('')}
+        </div>
+        <div class="video-tabs">
+          ${VIDEOS.map((v, i) => `<button type="button" data-idx="${i}">${v.caption}</button>`).join('')}
+        </div>
+      `;
+      frame.appendChild(vs);
+      slides.push({ el: vs, section: sec, index: 0, isVideo: true });
+      videos = Array.from(vs.querySelectorAll('video'));
+      vtabs = Array.from(vs.querySelectorAll('.video-tabs button'));
+      vtabs.forEach((b, i) => b.addEventListener('click', (e) => { e.stopPropagation(); playVideo(i); }));
+      // 영상 종료 시 다음 영상으로 자동 전환
+      videos.forEach((v, i) => {
+        v.addEventListener('ended', () => { if (videos[i + 1]) playVideo(i + 1); });
+      });
+      playVideo(0, false);
+    }
   });
-  playVideo(0, false);
+  const TOTAL = slides.length;
+  const sectionStart = {};   // 구역 id -> 첫 슬라이드 전역 index
+  slides.forEach((s, i) => { if (!(s.section.id in sectionStart)) sectionStart[s.section.id] = i; });
 
-  // ===== 도트 =====
-  const dots = document.getElementById('dots');
-  for (let i = 0; i < TOTAL; i++) {
+  // ===== 상단 구역 버튼 =====
+  const sectionsEl = document.getElementById('sections');
+  const secBtns = {};
+  SECTIONS.forEach(sec => {
     const b = document.createElement('button');
-    if (i === TOTAL - 1) b.classList.add('video');
-    b.title = i === TOTAL - 1 ? '영상' : `슬라이드 ${i + 1}`;
+    b.type = 'button';
+    const n = sec.type === 'images' ? sec.count : VIDEOS.length;
+    b.innerHTML = `${sec.name} <small>${n}</small>`;
+    b.title = `${sec.name}로 이동`;
+    b.addEventListener('click', () => go(sectionStart[sec.id]));
+    sectionsEl.appendChild(b);
+    secBtns[sec.id] = b;
+  });
+
+  // ===== 도트 (구역별로 묶음) =====
+  const dots = document.getElementById('dots');
+  const dotEls = [];
+  slides.forEach((s, i) => {
+    if (i > 0 && slides[i - 1].section !== s.section) {
+      const g = document.createElement('span'); g.className = 'gap'; dots.appendChild(g);
+    }
+    const b = document.createElement('button');
+    if (s.isVideo) b.classList.add('video');
+    b.title = s.isVideo ? '영상' : `${s.section.name} ${s.index + 1}`;
     b.addEventListener('click', () => go(i));
     dots.appendChild(b);
-  }
-  const dotEls = Array.from(dots.children);
+    dotEls.push(b);
+  });
 
   // ===== 상태/네비게이션 =====
   const counter = document.getElementById('counter');
+  const titleEl = document.getElementById('title');
   const progress = document.getElementById('progress');
   const btnPrev = document.getElementById('btnPrev');
   const btnNext = document.getElementById('btnNext');
@@ -299,8 +365,14 @@
   function loadImg(i) {
     const s = slides[i];
     if (!s) return;
-    const img = s.querySelector('img');
+    const img = s.el.querySelector('img');
     if (img && !img.src) img.src = img.dataset.src;
+  }
+
+  function hashFor(i) {
+    const s = slides[i];
+    if (s.isVideo) return 'video';
+    return `${s.section.id}-${s.index + 1}`;
   }
 
   function go(n) {
@@ -308,27 +380,33 @@
     if (n === cur) return;
     const prev = cur;
     cur = n;
+    const s = slides[cur];
 
-    slides.forEach((s, i) => {
-      s.classList.toggle('active', i === cur);
-      s.classList.toggle('prev', i < cur);
+    slides.forEach((x, i) => {
+      x.el.classList.toggle('active', i === cur);
+      x.el.classList.toggle('prev', i < cur);
     });
 
     // 현재 + 인접 이미지 로드
     loadImg(cur); loadImg(cur + 1); loadImg(cur - 1); loadImg(cur + 2);
 
-    counter.textContent = `${cur + 1} / ${TOTAL}`;
+    const secTotal = s.section.type === 'images' ? s.section.count : 1;
+    counter.innerHTML = s.isVideo
+      ? `<span class="sec">영상</span>`
+      : `<span class="sec">${s.section.name}</span>${s.index + 1} / ${secTotal}`;
+    titleEl.textContent = `삼다수 사옥 이전 · ${s.section.name}`;
     progress.style.width = `${((cur + 1) / TOTAL) * 100}%`;
     dotEls.forEach((d, i) => d.classList.toggle('on', i === cur));
+    Object.entries(secBtns).forEach(([id, b]) => b.classList.toggle('on', id === s.section.id));
     btnPrev.disabled = cur === 0;
     btnNext.disabled = cur === TOTAL - 1;
-    history.replaceState(null, '', '#' + (cur === TOTAL - 1 ? 'video' : String(cur + 1)));
+    history.replaceState(null, '', location.search + '#' + hashFor(cur));
 
     // 영상 페이지 진입/이탈 처리
-    document.body.classList.toggle('on-video', cur === TOTAL - 1);
-    if (cur === TOTAL - 1) {
+    document.body.classList.toggle('on-video', s.isVideo);
+    if (s.isVideo) {
       playVideo(0);
-    } else if (prev === TOTAL - 1) {
+    } else if (prev >= 0 && slides[prev].isVideo) {
       videos.forEach(v => v.pause());
     }
   }
@@ -352,6 +430,12 @@
       case 'Home': go(0); break;
       case 'End': go(TOTAL - 1); break;
       case 'f': case 'F': toggleFull(); break;
+      case '1': case '2': case '3': {
+        // 숫자키 1/2/3 으로 구역 이동
+        const sec = SECTIONS[parseInt(e.key, 10) - 1];
+        if (sec) go(sectionStart[sec.id]);
+        break;
+      }
     }
   });
 
@@ -375,12 +459,25 @@
   document.getElementById('btnFull').addEventListener('click', toggleFull);
 
   // 힌트 자동 숨김
-  setTimeout(() => document.getElementById('hint').classList.add('hide'), 5000);
+  setTimeout(() => document.getElementById('hint').classList.add('hide'), 6000);
 
-  // 시작 위치 (URL 해시 지원: #3, #video)
-  const h = location.hash.replace('#', '');
-  const start = h === 'video' ? TOTAL - 1 : (parseInt(h, 10) > 0 ? parseInt(h, 10) - 1 : 0);
-  go(Number.isFinite(start) ? start : 0);
+  // 시작 위치 (URL 해시: #review-5, #proposal-3, #video)
+  function startIndex() {
+    const h = decodeURIComponent(location.hash.replace('#', ''));
+    if (!h) return 0;
+    if (h === 'video' && 'video' in sectionStart) return sectionStart.video;
+    const m = h.match(/^([a-z]+)(?:-(\d+))?$/);
+    if (m && m[1] in sectionStart) {
+      const off = m[2] ? parseInt(m[2], 10) - 1 : 0;
+      const sec = SECTIONS.find(s => s.id === m[1]);
+      const max = sec.type === 'images' ? sec.count - 1 : 0;
+      return sectionStart[m[1]] + Math.max(0, Math.min(max, off));
+    }
+    const n = parseInt(h, 10);
+    if (n > 0) return Math.min(TOTAL - 1, n - 1);
+    return 0;
+  }
+  go(startIndex());
 </script>
 </body>
 </html>
