@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>삼다수 사옥 이전 제안서</title>
+<style>
+  :root {
+    --bg: #0b1633;
+    --bg2: #12224d;
+    --accent: #1e5bd8;
+    --text: #e8eefb;
+    --muted: rgba(232, 238, 251, 0.55);
+    --ui: rgba(255, 255, 255, 0.08);
+    --ui-hover: rgba(255, 255, 255, 0.16);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: radial-gradient(1200px 800px at 70% 20%, var(--bg2), var(--bg) 70%);
+    color: var(--text);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* 슬라이드 영역 */
+  .stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 72px 64px;
+  }
+  @media (max-width: 720px) {
+    .stage { padding: 12px 8px 56px; }
+  }
+  .frame {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slide {
+    position: absolute;
+    aspect-ratio: 16 / 9;
+    max-width: 100%; max-height: 100%;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    background: #fff;
+    opacity: 0; visibility: hidden;
+    transform: translateX(40px) scale(0.985);
+    transition: opacity .45s ease, transform .45s cubic-bezier(.2,.7,.2,1), visibility 0s linear .45s;
+  }
+  .slide.active {
+    opacity: 1; visibility: visible;
+    transform: translateX(0) scale(1);
+    transition: opacity .45s ease, transform .45s cubic-bezier(.2,.7,.2,1), visibility 0s;
+  }
+  .slide.prev {
+    transform: translateX(-40px) scale(0.985);
+  }
+  .slide img {
+    display: block; width: 100%; height: 100%; object-fit: contain;
+  }
+
+  /* 영상 슬라이드 */
+  .slide.video-slide {
+    background: linear-gradient(160deg, #0f1f4a 0%, #0a142e 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: clamp(8px, 1.6vmin, 18px);
+    padding: clamp(14px, 3vmin, 36px) clamp(14px, 4vmin, 48px);
+    color: #fff;
+  }
+  .video-head {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .video-slide h2 {
+    font-size: clamp(15px, 2.6vmin, 30px);
+    font-weight: 700; letter-spacing: -0.02em; color: #fff;
+  }
+  .video-slide h2 span { color: #7fb0ff; }
+  .video-tabs { display: flex; gap: 6px; }
+  .video-tabs button {
+    appearance: none; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.06); color: rgba(255,255,255,.75);
+    border-radius: 999px; padding: .45em 1.1em;
+    font: inherit; font-size: clamp(11px, 1.5vmin, 14px); font-weight: 600;
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .video-tabs button:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .video-tabs button.on { background: #2f6fe8; border-color: #2f6fe8; color: #fff; }
+  .videos {
+    flex: 1; min-height: 0; width: 100%; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .videos video {
+    position: absolute; inset: 0; margin: auto;
+    max-width: 100%; max-height: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px; background: #000;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5);
+    outline: none;
+    opacity: 0; visibility: hidden; transition: opacity .35s;
+  }
+  .videos video.on { opacity: 1; visibility: visible; }
+  .video-slide p {
+    font-size: clamp(11px, 1.4vmin, 15px);
+    color: var(--muted);
+  }
+
+  /* 하단 컨트롤 */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    font-size: 13px; color: var(--muted);
+    background: linear-gradient(to top, rgba(5,10,25,.7), transparent);
+    z-index: 10;
+  }
+  .controls .left, .controls .right { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    appearance: none; border: 0; cursor: pointer;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--ui); color: var(--text);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .2s, transform .1s;
+  }
+  .btn:hover { background: var(--ui-hover); }
+  .btn:active { transform: scale(.94); }
+  .btn:disabled { opacity: .3; cursor: default; }
+  .btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .counter { font-variant-numeric: tabular-nums; min-width: 56px; text-align: center; color: var(--text); }
+  .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+  @media (max-width: 720px) { .title { display: none; } }
+
+  /* 진행 바 + 도트 */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, #4f8cff, #7fb0ff);
+    transition: width .35s ease; z-index: 10;
+  }
+  .dots {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 11;
+  }
+  .dots button {
+    appearance: none; border: 0; cursor: pointer; padding: 0;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    transition: transform .2s, background .2s;
+  }
+  .dots button.on { background: #7fb0ff; transform: scale(1.35); }
+  .dots button.video { border-radius: 2px; }
+  @media (max-width: 720px) { .dots { display: none; } }
+
+  /* 좌우 클릭 영역 */
+  .nav-zone {
+    position: fixed; top: 0; bottom: 56px; width: 25%;
+    z-index: 5; cursor: pointer;
+  }
+  .nav-zone.left { left: 0; }
+  .nav-zone.right { right: 0; }
+  .nav-zone .arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--ui); color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .25s;
+  }
+  .nav-zone.left .arrow { left: 14px; }
+  .nav-zone.right .arrow { right: 14px; }
+  .nav-zone:hover .arrow { opacity: 1; }
+  .nav-zone .arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  @media (max-width: 720px) { .nav-zone .arrow { display: none; } }
+
+  .hint {
+    position: fixed; top: 16px; right: 20px; z-index: 10;
+    font-size: 12px; color: var(--muted);
+    opacity: 1; transition: opacity 1s;
+  }
+  .hint.hide { opacity: 0; }
+  @media (max-width: 720px) { .hint { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="hint" id="hint">← → 방향키 · Space · 클릭으로 넘기기 · F 전체화면</div>
+
+<div class="stage">
+  <div class="frame" id="frame">
+    <!-- 슬라이드는 스크립트에서 생성 -->
+  </div>
+</div>
+
+<div class="nav-zone left" id="zonePrev" aria-label="이전 슬라이드">
+  <div class="arrow"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+</div>
+<div class="nav-zone right" id="zoneNext" aria-label="다음 슬라이드">
+  <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+</div>
+
+<div class="dots" id="dots"></div>
+
+<div class="controls">
+  <div class="left">
+    <span class="title">삼다수 사옥 이전 제안서</span>
+  </div>
+  <div class="right">
+    <button class="btn" id="btnPrev" title="이전 (←)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span class="counter" id="counter">1 / 9</span>
+    <button class="btn" id="btnNext" title="다음 (→)"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <button class="btn" id="btnFull" title="전체화면 (F)"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button>
+  </div>
+</div>
+
+<script>
+  // ===== 설정 =====
+  const SLIDE_COUNT = 8;                 // slides/01.jpg ~ 08.jpg
+  const VIDEOS = [
+    { src: 'video/video1.mp4', caption: '영상 1' },
+    { src: 'video/video2.mp4', caption: '영상 2' },
+  ];
+  const TOTAL = SLIDE_COUNT + 1;         // + 마지막 영상 페이지
+
+  // ===== 슬라이드 생성 =====
+  const frame = document.getElementById('frame');
+  const slides = [];
+  for (let i = 1; i <= SLIDE_COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'slide';
+    const img = document.createElement('img');
+    img.alt = `슬라이드 ${i}`;
+    img.dataset.src = `slides/${String(i).padStart(2, '0')}.jpg`;
+    img.decoding = 'async';
+    el.appendChild(img);
+    frame.appendChild(el);
+    slides.push(el);
+  }
+
+  // 영상 슬라이드
+  const vs = document.createElement('div');
+  vs.className = 'slide video-slide';
+  vs.innerHTML = `
+    <div class="video-head">
+      <h2>제주 <span>삼다수</span> 사옥 이전 · 영상</h2>
+      <div class="video-tabs">
+        ${VIDEOS.map((v, i) => `<button type="button" data-idx="${i}">${v.caption}</button>`).join('')}
+      </div>
+    </div>
+    <div class="videos">
+      ${VIDEOS.map((v, i) => `
+        <video preload="auto" playsinline controls data-idx="${i}">
+          <source src="${v.src}" type="video/mp4">
+        </video>`).join('')}
+    </div>
+    <p>이 페이지에 들어오면 영상이 자동 재생되고, 첫 번째 영상이 끝나면 두 번째 영상으로 이어집니다.</p>
+  `;
+  frame.appendChild(vs);
+  slides.push(vs);
+  const videos = Array.from(vs.querySelectorAll('video'));
+  const vtabs = Array.from(vs.querySelectorAll('.video-tabs button'));
+
+  function playVideo(i, autoplay = true) {
+    videos.forEach((v, k) => {
+      const on = k === i;
+      v.classList.toggle('on', on);
+      vtabs[k].classList.toggle('on', on);
+      if (!on) v.pause();
+    });
+    const v = videos[i];
+    if (!autoplay) return;
+    v.currentTime = 0;
+    v.muted = false;
+    v.play().catch(() => {
+      // 자동재생 정책으로 소리 있는 재생이 막히면 음소거로 재생
+      v.muted = true;
+      v.play().catch(() => {});
+    });
+  }
+  vtabs.forEach((b, i) => b.addEventListener('click', (e) => { e.stopPropagation(); playVideo(i); }));
+
+  // 영상 종료 시 다음 영상으로 자동 전환
+  videos.forEach((v, i) => {
+    v.addEventListener('ended', () => {
+      if (videos[i + 1]) playVideo(i + 1);
+    });
+  });
+  playVideo(0, false);
+
+  // ===== 도트 =====
+  const dots = document.getElementById('dots');
+  for (let i = 0; i < TOTAL; i++) {
+    const b = document.createElement('button');
+    if (i === TOTAL - 1) b.classList.add('video');
+    b.title = i === TOTAL - 1 ? '영상' : `슬라이드 ${i + 1}`;
+    b.addEventListener('click', () => go(i));
+    dots.appendChild(b);
+  }
+  const dotEls = Array.from(dots.children);
+
+  // ===== 상태/네비게이션 =====
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  let cur = -1;
+
+  function loadImg(i) {
+    const s = slides[i];
+    if (!s) return;
+    const img = s.querySelector('img');
+    if (img && !img.src) img.src = img.dataset.src;
+  }
+
+  function go(n) {
+    n = Math.max(0, Math.min(TOTAL - 1, n));
+    if (n === cur) return;
+    const prev = cur;
+    cur = n;
+
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === cur);
+      s.classList.toggle('prev', i < cur);
+    });
+
+    // 현재 + 인접 이미지 로드
+    loadImg(cur); loadImg(cur + 1); loadImg(cur - 1); loadImg(cur + 2);
+
+    counter.textContent = `${cur + 1} / ${TOTAL}`;
+    progress.style.width = `${((cur + 1) / TOTAL) * 100}%`;
+    dotEls.forEach((d, i) => d.classList.toggle('on', i === cur));
+    btnPrev.disabled = cur === 0;
+    btnNext.disabled = cur === TOTAL - 1;
+    history.replaceState(null, '', '#' + (cur === TOTAL - 1 ? 'video' : String(cur + 1)));
+
+    // 영상 페이지 진입/이탈 처리
+    if (cur === TOTAL - 1) {
+      playVideo(0);
+    } else if (prev === TOTAL - 1) {
+      videos.forEach(v => v.pause());
+    }
+  }
+  const next = () => go(cur + 1);
+  const back = () => go(cur - 1);
+
+  // 버튼/클릭 영역
+  btnPrev.addEventListener('click', back);
+  btnNext.addEventListener('click', next);
+  document.getElementById('zonePrev').addEventListener('click', back);
+  document.getElementById('zoneNext').addEventListener('click', next);
+
+  // 키보드
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'VIDEO') return;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace':
+        e.preventDefault(); back(); break;
+      case 'Home': go(0); break;
+      case 'End': go(TOTAL - 1); break;
+      case 'f': case 'F': toggleFull(); break;
+    }
+  });
+
+  // 터치 스와이프
+  let tx = 0, ty = 0;
+  document.addEventListener('touchstart', (e) => {
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (e.target.tagName === 'VIDEO') return;
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) dx < 0 ? next() : back();
+  }, { passive: true });
+
+  // 전체화면
+  function toggleFull() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+  document.getElementById('btnFull').addEventListener('click', toggleFull);
+
+  // 힌트 자동 숨김
+  setTimeout(() => document.getElementById('hint').classList.add('hide'), 5000);
+
+  // 시작 위치 (URL 해시 지원: #3, #video)
+  const h = location.hash.replace('#', '');
+  const start = h === 'video' ? TOTAL - 1 : (parseInt(h, 10) > 0 ? parseInt(h, 10) - 1 : 0);
+  go(Number.isFinite(start) ? start : 0);
+</script>
+</body>
+</html>
