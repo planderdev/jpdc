@@ -247,9 +247,7 @@
     { id: 'video',    name: '영상',     type: 'video' },
   ];
   const VIDEOS = [
-    { src: 'video/video1.mp4?v=2', caption: '영상 1' },
-    { src: 'video/video2.mp4?v=2', caption: '영상 2' },
-    { src: 'video/video3.mp4?v=1', caption: '영상 3' },
+    { src: 'video/main.mp4?v=1', caption: '조감도 및 브랜드 영상' },
   ];
 
   const params = new URLSearchParams(location.search);
@@ -267,7 +265,7 @@
     videos.forEach((v, k) => {
       const on = k === i;
       v.classList.toggle('on', on);
-      vtabs[k].classList.toggle('on', on);
+      if (vtabs[k]) vtabs[k].classList.toggle('on', on);
       if (!on) v.pause();
     });
     const v = videos[i];
@@ -305,9 +303,9 @@
               <source src="${v.src}" type="video/mp4">
             </video>`).join('')}
         </div>
-        <div class="video-tabs">
+        ${VIDEOS.length > 1 ? `<div class="video-tabs">
           ${VIDEOS.map((v, i) => `<button type="button" data-idx="${i}">${v.caption}</button>`).join('')}
-        </div>
+        </div>` : ''}
       `;
       frame.appendChild(vs);
       slides.push({ el: vs, section: sec, index: 0, isVideo: true });
